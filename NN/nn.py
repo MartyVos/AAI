@@ -1,8 +1,8 @@
 #!/usr/bin/python
 import math
-from random import randrange, seed
+from random import uniform, seed
 from typing import List
-from nn import SigmoidNeuron
+
 
 def sigmoid(z):
     return (1 / (1 + math.exp(-z)))
@@ -13,39 +13,56 @@ def der_sigmoid(z):
 
 
 class SigmoidNeuron():
-    def __init__(self, id: int, prev_layer: List[SigmoidNeuron], next_layer: List[SigmoidNeuron]):
+    def __init__(self, id: int, prev_layer: List):
         self.id = id
         
         self.prev_layer = prev_layer
-        self.next_layer = next_layer
+        self.next_layer = None
 
-        self.weights = [randrange(-1.0, 1.0) for _ in range(len(prev_layer))]
-        self.bias = randrange(-1.0, 1.0)
+        self.weights = [uniform(-1.0, 1.0) for _ in range(len(prev_layer))] if self.prev_layer is not None else None
+        self.bias = uniform(-1.0, 1.0)
 
         self.a = 0.0
         self.z = 0.0
         self.delta = 0.0
 
+    def add_next_layer(self, next_layer):
+        self.next_layer = next_layer
     
     def connect_to(self, other_id):
         self.next_layer[other_id].inputs[self.id] = self
-
     
-    def update(self, ):
-        pass
 
-    def updateWeight(self, learning_factor, desired_output):
+    def update_weights(self, learning_factor, desired_output: List[float]):
+        # Update weights
+        tmp = 0.0
+
+        if self.prev_layer is not None:
+            # If current layer is the last one...
+            if self.next_layer is None:
+                self.delta = der_sigmoid(self.z) * (desired_output[self.id] - self.a)
+            
+            else:
+                for i in self.prev_layer:
+                    tmp += (i.delta * self.weights[i.id])
+                self.delta = der_sigmoid(self.z) * tmp
+                #print("\t\t\t", self.id, self.delta)
+
+            for node in range(len(self.weights)):
+               # print("BEFORE:\t", self.id, self.weights[node], self.delta)
+                self.weights[node] = self.weights[node] + learning_factor * self.delta * self.prev_layer[node].a
+              #  print("AFTER:\t", self.id, self.weights[node], self.delta)
+            
+        # Update bias
+        self.bias = learning_factor * self.delta
+        
+
+
+    def process_input(self, input: int=None):
         tmp = 0.0
         for i in self.prev_layer:
-            tmp += (i.z * self.weights[i.id])
-        self.weights[self.id] += learning_factor * self.process_input() * der_sigmoid(tmp) * (desired_output - self.z)
-
-
-    def process_input(self):
-        tmp = 0.0
-        for i in self.prev_layer:
-            tmp += (i.z * self.weights[i.id])     # i = tuple: (Neuron, weight)
-        self.z = sigmoid(tmp)
+            tmp += (i.a * self.weights[i.id])     # i = tuple: (Neuron, weight)
+        self.z = sigmoid(tmp + self.bias)
 
 
 class Perceptron():
@@ -240,6 +257,44 @@ def exercise_A_Neuron():
     
 
 def main():
+    p0 = SigmoidNeuron(0, None)
+    p1 = SigmoidNeuron(1, None)
+    p2 = SigmoidNeuron(2, None)
+
+    # NOR:  0 0 0 = 1
+    #       x x 1 = 0
+    #       x 1 x = 0
+    #       1 x x = 0
+
+    pNOR = SigmoidNeuron(0, [p0, p1, p2])
+
+    p0.add_next_layer([pNOR])
+    p1.add_next_layer([pNOR])
+    p2.add_next_layer([pNOR])
+
+
+    inputs = [
+        (0,0,0),
+        (0,0,1),
+        (0,1,0),
+        (0,1,1),
+        (1,0,0),
+        (1,0,1),
+        (1,1,0),
+        (1,1,1),
+    ]
+    desired_output = [1,0,0,0,0,0,0,0]
+    
+    for x in range(5):
+        print("Iteration", x)
+        for i in range(len(inputs)):
+            p0.a, p1.a, p2.a = inputs[i][0], inputs[i][1], inputs[i][2]
+            pNOR.process_input()
+            print(inputs[i][0], inputs[i][1], inputs[i][2], "=", pNOR.z)
+            pNOR.update_weights(0.1, [desired_output[i]])
+    return
+     
+#region Zooi
     # basic_logic_test()
     # exercise_A_Neuron()
     p0 = SigmoidNeuron(0, 1, True)           # Maak een SigmoidNeuron aan met 0 inputs, bias 1, is een input neuron
@@ -273,8 +328,8 @@ def main():
     #         p1.process_input()
     #         pAND.process_input()
     #         print(i, j, "=", pAND.output)
-    # print()
-        
+    # print()      
+#endregion
 
 if __name__ == "__main__":
     seed(0)
