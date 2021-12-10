@@ -5,11 +5,10 @@ from typing import List
 
 
 def sigmoid(z):
-    return (1 / (1 + math.exp(-z)))
+    return (1.0 / (1.0 + math.exp(-z)))
 
 def der_sigmoid(z):
-    return sigmoid(1-sigmoid(z))
-
+    return sigmoid(z) * (1.0-sigmoid(z))
 
 
 class SigmoidNeuron():
@@ -44,8 +43,8 @@ class SigmoidNeuron():
                 # print(der_sigmoid(self.z), desired_output[self.id], self.a, self.delta)
             
             else:
-                for i in self.prev_layer:
-                    tmp += (i.delta * self.weights[i.id])
+                for i in self.next_layer:
+                    tmp += (i.delta * i.weights[self.id])
                 self.delta = der_sigmoid(self.z) * tmp
                 #print("\t\t\t", self.id, self.delta)
 
@@ -55,7 +54,7 @@ class SigmoidNeuron():
               #  print("AFTER:\t", self.id, self.weights[node], self.delta)
             
         # Update bias
-        self.bias = learning_factor * self.delta
+        self.bias += learning_factor * self.delta
         
 
 
@@ -285,15 +284,22 @@ def main():
         (1,1,0),
         (1,1,1),
     ]
-    desired_output = [1,0,0,0,0,0,0,0]
+    desired_output = [[1],[0],[0],[0],[0],[0],[0],[0]]
     
-    for x in range(10):
-        print("Iteration", x+1)
+    l_factor = 0.1
+
+    for x in range(20000):
+        if x % 100 == 0:
+            print("Iteration:", x+1)
         for i in range(len(inputs)):
             p0.a, p1.a, p2.a = inputs[i][0], inputs[i][1], inputs[i][2]
-            pNOR.process_input()
-            print(inputs[i][0], inputs[i][1], inputs[i][2], "=", pNOR.a)
-            pNOR.update_weights(16, [desired_output[i]])
+            pNOR.process_input()            
+            pNOR.update_weights(l_factor, desired_output[i])
+            if x % 100 == 0:
+                
+                print(inputs[i][0], inputs[i][1], inputs[i][2], "=", pNOR.a)
+        if x % 1000 == 0:
+            print(",ksjfhkjsf")
     return
      
 #region Zooi
@@ -334,5 +340,5 @@ def main():
 #endregion
 
 if __name__ == "__main__":
-    seed(0)
+    # seed(0)
     main()
