@@ -41,6 +41,7 @@ class SigmoidNeuron():
             # If current layer is the last one...
             if self.next_layer is None:
                 self.delta = der_sigmoid(self.z) * (desired_output[self.id] - self.a)
+                # print(der_sigmoid(self.z), desired_output[self.id], self.a, self.delta)
             
             else:
                 for i in self.prev_layer:
@@ -62,7 +63,8 @@ class SigmoidNeuron():
         tmp = 0.0
         for i in self.prev_layer:
             tmp += (i.a * self.weights[i.id])     # i = tuple: (Neuron, weight)
-        self.z = sigmoid(tmp + self.bias)
+        self.z = tmp + self.bias
+        self.a = sigmoid(self.z)
 
 
 class Perceptron():
@@ -285,13 +287,13 @@ def main():
     ]
     desired_output = [1,0,0,0,0,0,0,0]
     
-    for x in range(5):
-        print("Iteration", x)
+    for x in range(10):
+        print("Iteration", x+1)
         for i in range(len(inputs)):
             p0.a, p1.a, p2.a = inputs[i][0], inputs[i][1], inputs[i][2]
             pNOR.process_input()
-            print(inputs[i][0], inputs[i][1], inputs[i][2], "=", pNOR.z)
-            pNOR.update_weights(0.1, [desired_output[i]])
+            print(inputs[i][0], inputs[i][1], inputs[i][2], "=", pNOR.a)
+            pNOR.update_weights(16, [desired_output[i]])
     return
      
 #region Zooi
