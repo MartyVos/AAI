@@ -1,5 +1,6 @@
 #!/usr/bin/python
 import math
+import numpy as np
 from random import uniform, seed
 from typing import List
 
@@ -189,6 +190,54 @@ def basic_logic_test():
     print()
 
 
+def exercise_B_NOR():
+    p0 = SigmoidNeuron(0, None)
+    p1 = SigmoidNeuron(1, None)
+    p2 = SigmoidNeuron(2, None)
+
+    # NOR:  0 0 0 = 1
+    #       x x 1 = 0
+    #       x 1 x = 0
+    #       1 x x = 0
+
+    pNOR = SigmoidNeuron(0, [p0, p1, p2])
+
+    p0.add_next_layer([pNOR])
+    p1.add_next_layer([pNOR])
+    p2.add_next_layer([pNOR])
+
+
+    inputs = [
+        (0,0,0),
+        (0,0,1),
+        (0,1,0),
+        (0,1,1),
+        (1,0,0),
+        (1,0,1),
+        (1,1,0),
+        (1,1,1),
+    ]
+    desired_output = [[1],[0],[0],[0],[0],[0],[0],[0]]
+    
+    l_factor = 0.1
+
+    # TODO TODO urgent, please do
+    # - Make function
+
+    for x in range(20000):
+        if x % 100 == 0:
+            print("Iteration:", x+1)
+        for i in range(len(inputs)):
+            p0.a, p1.a, p2.a = inputs[i][0], inputs[i][1], inputs[i][2]
+            pNOR.process_input()            
+            pNOR.update_weights(l_factor, desired_output[i])
+            if x % 100 == 0:
+                
+                print(inputs[i][0], inputs[i][1], inputs[i][2], "=", pNOR.a)
+        if x % 1000 == 0:
+            print(",ksjfhkjsf")
+
+
 def exercise_A_Neuron():
     treshold = 0
     weight = -1
@@ -257,88 +306,52 @@ def exercise_A_Neuron():
             print(i, j, "= sum:{} carry:{}".format(pNAND_L2.output, pNOT_L2.output))
     
 
+def exercise_C_XOR():
+
+    pass
+
+
+def exercise_D_Iris():
+    names = np.genfromtxt("./iris.data", delimiter=',', usecols=[0,1,2,3,4], dtype=str)
+    
+    '''
+        4 Inputs:
+            - sepal length
+            - sepal width
+            - petal length
+            - petal width
+
+        3 Outputs:
+            - Iris Setosa
+            - Iris Versicolour
+            - Iris Virginica
+    
+    '''
+
+    s_length = SigmoidNeuron(0, None)
+    s_width = SigmoidNeuron(1, None)
+    p_lenght = SigmoidNeuron(2, None)
+    p_width = SigmoidNeuron(3, None)
+
+    inputs = [s_length, s_width, p_lenght, p_width]
+
+    setosa = SigmoidNeuron(0, inputs)
+    versicolour = SigmoidNeuron(1, inputs)
+    virginica  =SigmoidNeuron(2, inputs)
+
+    outputs = [setosa, versicolour, virginica]
+
+    for _input in inputs:
+        _input.connect_to(outputs)
+
+
+
+
 def main():
-    p0 = SigmoidNeuron(0, None)
-    p1 = SigmoidNeuron(1, None)
-    p2 = SigmoidNeuron(2, None)
-
-    # NOR:  0 0 0 = 1
-    #       x x 1 = 0
-    #       x 1 x = 0
-    #       1 x x = 0
-
-    pNOR = SigmoidNeuron(0, [p0, p1, p2])
-
-    p0.add_next_layer([pNOR])
-    p1.add_next_layer([pNOR])
-    p2.add_next_layer([pNOR])
-
-
-    inputs = [
-        (0,0,0),
-        (0,0,1),
-        (0,1,0),
-        (0,1,1),
-        (1,0,0),
-        (1,0,1),
-        (1,1,0),
-        (1,1,1),
-    ]
-    desired_output = [[1],[0],[0],[0],[0],[0],[0],[0]]
     
-    l_factor = 0.1
-
-    for x in range(20000):
-        if x % 100 == 0:
-            print("Iteration:", x+1)
-        for i in range(len(inputs)):
-            p0.a, p1.a, p2.a = inputs[i][0], inputs[i][1], inputs[i][2]
-            pNOR.process_input()            
-            pNOR.update_weights(l_factor, desired_output[i])
-            if x % 100 == 0:
-                
-                print(inputs[i][0], inputs[i][1], inputs[i][2], "=", pNOR.a)
-        if x % 1000 == 0:
-            print(",ksjfhkjsf")
     return
-     
-#region Zooi
-    # basic_logic_test()
-    # exercise_A_Neuron()
-    p0 = SigmoidNeuron(0, 1, True)           # Maak een SigmoidNeuron aan met 0 inputs, bias 1, is een input neuron
-    p1 = SigmoidNeuron(0, 1, True)           # Maak een SigmoidNeuron aan met 0 inputs, bias 1, is een input neuron
-    pAND = SigmoidNeuron(2, 1, False)        # Maak een SigmoidNeuron aan met 2 inputs, bias 1, is géén input neuron
-    
-    p0.connect_to(pAND, 0, 1)
-    p1.connect_to(pAND, 1, 1)
 
-
-    N = NeuralNetwork(2)
-
-    N.addToLayer(0, p0)
-    N.addToLayer(0, p1)
-    N.addToLayer(1, pAND)
-
-    p0.input, p1.input = 1, 1
-    N.process()
-
-    inputs = [([0, 0], [0]),
-              ([0, 1], [0]),
-              ([1, 0], [0]),
-              ([1, 1], [1])
-    ]
-
-
-    # for i in range(0,2):
-    #     for j in range(0,2):
-    #         p0.input, p1.input = i, j
-    #         p0.process_input()
-    #         p1.process_input()
-    #         pAND.process_input()
-    #         print(i, j, "=", pAND.output)
-    # print()      
-#endregion
 
 if __name__ == "__main__":
-    # seed(0)
+    seed(0)
     main()
