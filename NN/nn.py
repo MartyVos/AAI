@@ -6,15 +6,24 @@ from random import uniform, seed, sample
 from typing import List, Any, Optional
 
 
+'''
+    Deze functie berekent de sigmoïde van de parameter 'z'.
+'''
 def sigmoid(z: float):
     return (1.0 / (1.0 + math.exp(-z)))
 
 
+'''
+    Deze functie berekent de afgeleide sigmoïde van de parameter 'z'.
+'''
 def der_sigmoid(z: float):
     return sigmoid(z) * (1.0-sigmoid(z))
 
 
 class SigmoidNeuron():
+    '''
+
+    '''
     def __init__(self, id: int, prev_layer: Optional[List[SigmoidNeuron]]):
         self.id = id
         
@@ -29,10 +38,29 @@ class SigmoidNeuron():
         self.delta = 0.0
 
 
+    '''
+        Deze functie 'verbindt' het huidige neuron met de volgende laag 'next_layer'. 
+    '''
     def add_next_layer(self, next_layer: List[SigmoidNeuron]):
         self.next_layer = next_layer
     
 
+    '''
+        Deze functie updatet de weights van het neuron. Voor het berekenen, moet de delta
+        geüpdatet worden. De berekening van de delta is afhankelijk van in welke laag het
+        neuron zit. Als het in de laatste laag zit, dan wordt de delta berekent door de
+        afgeleide sigmoïde te nemen van 'z' en dat te vermenigvuldigen met het verschil
+        van de gewenste output en de 'a'.
+        Als het neuron in een tussenlaag zit, dan wordt eerst de totale som van de vorige
+        laag zijn delta te vermenigvuldigen met de weigths berekent. Deze som wordt
+        vervolgens vermenigvuldigt met de afgeleide sigmoïde van 'z' waar de delta
+        uitkomt.
+        Als de delta bekent is, wordt iedere weight geüpdatet. Eerst wordt de learning_factor
+        met de delta en de vorige laag zijn 'a' te vermenigvuld. Dan wordt deze uitkomt
+        bij de weight opgeteld.
+        Tot lot wortd de bias geüpdatet door de learning_factor te vermenigvuldigen met de
+        delta en vervolgens dit bij de bias op te tellen.
+    '''
     def update_weights(self, learning_factor: float, desired_output: List[float]):
         # Update weights
         tmp = 0.0
@@ -52,8 +80,11 @@ class SigmoidNeuron():
             
         # Update bias
         self.bias += learning_factor * self.delta
-        
 
+
+    '''
+        Deze functie verwerkt de inputs van een neuron naar de z en a van die neuron.
+    '''
     def process_input(self):
         tmp = 0.0
         for neuron in self.prev_layer:
@@ -62,8 +93,13 @@ class SigmoidNeuron():
         self.a = sigmoid(self.z)
 
 
-def train_network(l_factor: float, data_inputs: List[List[Any]], desired_outputs: List[List[Any]], input_neuron_vector: List[SigmoidNeuron], output_neuron_vector: List[SigmoidNeuron]):
-    for iteration in range(5000):
+'''
+    Deze functie train het neural netwerk. Dit doet de functie door een mee gegeven 
+    aantal iteraties te draaien waarbij de inputs voor iedere node verwerkt worden 
+    en waarna vervolgens voor iedere output node de weights geupdated worden.
+'''
+def train_network(iterations: int, l_factor: float, data_inputs: List[List[Any]], desired_outputs: List[List[Any]], input_neuron_vector: List[SigmoidNeuron], output_neuron_vector: List[SigmoidNeuron]):
+    for iteration in range(iterations):
         if iteration % 100 == 0:
             print("Iteration:", iteration+1)
         for data in range(len(data_inputs)):
@@ -75,10 +111,14 @@ def train_network(l_factor: float, data_inputs: List[List[Any]], desired_outputs
                 output_neuron_vector[output_n].process_input()
                 output_neuron_vector[output_n].update_weights(l_factor, desired_outputs[data])         
             
+    #Debug print
             if iteration % 100 == 0:
                 print([_input.a for _input in input_neuron_vector], desired_outputs[data], "\t", [_output.a for _output in output_neuron_vector])
 
-
+'''
+    Deze functie test het getrainde neural netwerk. Dit doet de functie door de 
+    inputs te verwerken voor alle nodes en vervolgens de outputs terug te geven.
+'''
 def test_network(data_inputs: List[List[Any]], expected_outputs: List[List[Any]], input_neuron_vector: List[SigmoidNeuron], output_neuron_vector: List[SigmoidNeuron]) -> List[List[float], int, int]:
     results = []
     for data in range(len(data_inputs)):
@@ -129,9 +169,28 @@ def exercise_NOR():
     
     l_factor = 0.1
 
-    train_network(l_factor, inputs, desired_output, [p0,p1,p2], [pNOR])
+    train_network(5000, l_factor, inputs, desired_output, [p0,p1,p2], [pNOR])
 
 
+'''
+    Deze functie voert de bloemenopdracht uit. Eerst wordt de trainingsset ingeladen
+    door de eerste vier kolommen in te lezen. De laatste vijfde kolom wordt apart
+    in een list in geladen. Omdat het neurale netwerk met getallen werkt krijgt elke
+    bloem een nummer:
+        1.  Iris Setosa
+        2.  Iris Versicolour
+        3.  Iris Virginica
+    Daarom worded de namen in de list vervangen met de juiste getallen. Hierna worden
+    de inputneuronen gedefinieerd en wordt de inputvector aangemaakt. Daarna worden 
+    de outputneuronen gedefineerd en wordt de outputvector aangemaakt. Vervolgen wordt
+    de inputvector met de outputvector verbonden en is het neurale netwerk klaar.
+    Na de initialisatie begint het trainen van het netwerk. Er wordt een learning factor
+    van 0.1 gekozen en het aantal iteraties wordt op 5000 gezet.
+    Nadat het netwerk getraint is, wordt het getest door 25 willekeurige bloemen uit de
+    dataset te kiezen en deze als input door het netwerk te laten verwerken.
+    De uitkomst van de test wordt geprint, waarna het foutpercentage wordt geprint.
+
+'''
 def exercise_D_Iris():
     training_set = np.genfromtxt("./nn/iris.data", delimiter=',', usecols=[0,1,2,3])
     output_names = list(np.genfromtxt("./nn/iris.data", delimiter=',', usecols=[4], dtype=str))
@@ -175,7 +234,7 @@ def exercise_D_Iris():
     l_factor = 0.1
 
     # Train the network...
-    train_network(l_factor, list(training_set), list(output_names), input_vector, output_vector)
+    train_network(5000, l_factor, list(training_set), list(output_names), input_vector, output_vector)
 
     # ...and test the network with the test dataset
     # Pick random flower samples from dataset
