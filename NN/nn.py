@@ -1,15 +1,17 @@
 #!/usr/bin/python
 import math
 import numpy as np
-from random import uniform, seed
-from typing import List
+from random import uniform, seed, sample
+from typing import List, Any
 
 
 def sigmoid(z):
     return (1.0 / (1.0 + math.exp(-z)))
 
+
 def der_sigmoid(z):
     return sigmoid(z) * (1.0-sigmoid(z))
+
 
 
 class SigmoidNeuron():
@@ -65,6 +67,48 @@ class SigmoidNeuron():
             tmp += (i.a * self.weights[i.id])     # i = tuple: (Neuron, weight)
         self.z = tmp + self.bias
         self.a = sigmoid(self.z)
+
+
+
+def train_network(l_factor: float, data_inputs: List[List[Any]], desired_outputs: List[List[Any]], input_neuron_vector: List[SigmoidNeuron], output_neuron_vector: List[SigmoidNeuron]):
+    for iteration in range(5000):
+        if iteration % 100 == 0:
+            print("Iteration:", iteration+1)
+        for data in range(len(data_inputs)):
+            # input_vector 
+            for input_n in range(len(input_neuron_vector)):
+                input_neuron_vector[input_n].a = data_inputs[data][input_n]
+
+            for output_n in range(len(output_neuron_vector)):
+                output_neuron_vector[output_n].process_input()
+                output_neuron_vector[output_n].update_weights(l_factor, desired_outputs[data])         
+            
+            if iteration % 100 == 0:
+                print([_input.a for _input in input_neuron_vector], desired_outputs[data], "\t", [_output.a for _output in output_neuron_vector])
+                
+        #d 
+        # if x % 1000 == 0:
+            # print("debug print line")
+
+
+def test_network(data_inputs: List[List[Any]], expected_outputs: List[List[Any]], input_neuron_vector: List[SigmoidNeuron], output_neuron_vector: List[SigmoidNeuron]):
+    results = []
+    for data in range(len(data_inputs)):
+        # input_vector 
+        for input_n in range(len(input_neuron_vector)):
+            input_neuron_vector[input_n].a = data_inputs[data][input_n]
+
+        for output_n in range(len(output_neuron_vector)):
+            output_neuron_vector[output_n].process_input()
+        
+        print([_input.a for _input in input_neuron_vector], expected_outputs[data], "\t", [_output.a for _output in output_neuron_vector])
+        
+        test_output = [_output.a for _output in output_neuron_vector]
+        highest_out = np.argmax(test_output)
+        expected_out = np.argmax(expected_outputs[data])
+        results.append([test_output, highest_out, expected_out])
+    return results
+        
 
 
 class Perceptron():
@@ -224,18 +268,20 @@ def exercise_B_NOR():
     # TODO TODO urgent, please do
     # - Make function
 
-    for x in range(20000):
-        if x % 100 == 0:
-            print("Iteration:", x+1)
-        for i in range(len(inputs)):
-            p0.a, p1.a, p2.a = inputs[i][0], inputs[i][1], inputs[i][2]
-            pNOR.process_input()            
-            pNOR.update_weights(l_factor, desired_output[i])
-            if x % 100 == 0:
+    train_network(l_factor, inputs, desired_output, [p0,p1,p2], [pNOR])
+
+    # for x in range(20000):
+    #     if x % 100 == 0:
+    #         print("Iteration:", x+1)
+    #     for i in range(len(inputs)):
+    #         p0.a, p1.a, p2.a = inputs[i][0], inputs[i][1], inputs[i][2]
+    #         pNOR.process_input()            
+    #         pNOR.update_weights(l_factor, desired_output[i])
+    #         if x % 100 == 0:
                 
-                print(inputs[i][0], inputs[i][1], inputs[i][2], "=", pNOR.a)
-        if x % 1000 == 0:
-            print(",ksjfhkjsf")
+    #             print(inputs[i][0], inputs[i][1], inputs[i][2], "=", pNOR.a)
+    #     if x % 1000 == 0:
+    #         print(",ksjfhkjsf")
 
 
 def exercise_A_Neuron():
@@ -312,8 +358,15 @@ def exercise_C_XOR():
 
 
 def exercise_D_Iris():
-    names = np.genfromtxt("./iris.data", delimiter=',', usecols=[0,1,2,3,4], dtype=str)
-    
+    training_set = np.genfromtxt("./nn/iris.data", delimiter=',', usecols=[0,1,2,3])
+    output_names = list(np.genfromtxt("./nn/iris.data", delimiter=',', usecols=[4], dtype=str))
+    for name in range(len(output_names)):
+        if output_names[name] == "Iris-setosa":
+            output_names[name] = [1, 0, 0]
+        elif output_names[name] == "Iris-versicolor":
+            output_names[name] = [0, 1, 0]
+        elif output_names[name] == "Iris-virginica":
+            output_names[name] = [0, 0, 1]
     '''
         4 Inputs:
             - sepal length
@@ -333,22 +386,50 @@ def exercise_D_Iris():
     p_lenght = SigmoidNeuron(2, None)
     p_width = SigmoidNeuron(3, None)
 
-    inputs = [s_length, s_width, p_lenght, p_width]
+    input_vector = [s_length, s_width, p_lenght, p_width]
 
-    setosa = SigmoidNeuron(0, inputs)
-    versicolour = SigmoidNeuron(1, inputs)
-    virginica  =SigmoidNeuron(2, inputs)
+    setosa = SigmoidNeuron(0, input_vector)
+    versicolour = SigmoidNeuron(1, input_vector)
+    virginica  =SigmoidNeuron(2, input_vector)
 
-    outputs = [setosa, versicolour, virginica]
+    output_vector = [setosa, versicolour, virginica]
 
-    for _input in inputs:
-        _input.connect_to(outputs)
+    for _input in input_vector:
+        _input.add_next_layer(output_vector)
 
+    l_factor = 0.1
 
+    # Train the network...
+    train_network(l_factor, list(training_set), list(output_names), input_vector, output_vector)
+
+    # ...and test the network with the test dataset
+    # Pick random flower samples from dataset
+    sample_nr = 25
+    test_indeces = sample(range(0, len(training_set)-1), sample_nr)
+    test_samples = [training_set[_sample] for _sample in test_indeces]
+    expected_output = [output_names[_sample] for _sample in test_indeces]
+
+    print("\nDone Training!\nTesting...\n")
+
+    results = test_network(test_samples, expected_output, input_vector, output_vector)
+    flowers = ["Iris-setosa", "Iris-versicolor", "Iris-virginica"]
+
+    print("\n...Done!\n")
+
+    # results = [test_output, index_of_highest_out_value, index_of_expected_out]
+    error_counter = 0
+    for _out in results:
+        print("Expected Flower: {:<15}\t Output Flower: {:<15}\t Output Value: {}".format(flowers[_out[2]], flowers[_out[1]],_out[0][_out[1]]))
+        if flowers[_out[2]] != flowers[_out[1]]:
+            error_counter += 1
+
+    # Calculate wrong percentage
+    print("\nError Percentage: {:%}". format(error_counter / sample_nr))
+    
 
 
 def main():
-    
+    exercise_D_Iris()
     return
 
 
