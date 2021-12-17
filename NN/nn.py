@@ -192,15 +192,28 @@ def exercise_NOR():
 
 '''
 def exercise_D_Iris():
-    training_set = np.genfromtxt("./nn/iris.data", delimiter=',', usecols=[0,1,2,3])
-    output_names = list(np.genfromtxt("./nn/iris.data", delimiter=',', usecols=[4], dtype=str))
-    for name in range(len(output_names)):
-        if output_names[name] == "Iris-setosa":
-            output_names[name] = [1, 0, 0]
-        elif output_names[name] == "Iris-versicolor":
-            output_names[name] = [0, 1, 0]
-        elif output_names[name] == "Iris-virginica":
-            output_names[name] = [0, 0, 1]
+    training_set = np.genfromtxt("./nn/trainingset.csv", delimiter=',', usecols=[0,1,2,3])
+    training_names = list(np.genfromtxt("./nn/trainingset.csv", delimiter=',', usecols=[4], dtype=str))
+    
+    for name in range(len(training_names)):
+        if training_names[name] == "Iris-setosa":
+            training_names[name] = [1, 0, 0]
+        elif training_names[name] == "Iris-versicolor":
+            training_names[name] = [0, 1, 0]
+        elif training_names[name] == "Iris-virginica":
+            training_names[name] = [0, 0, 1]
+    
+    test_set = np.genfromtxt("./nn/testset.csv", delimiter=',', usecols=[0,1,2,3])
+    test_names = list(np.genfromtxt("./nn/testset.csv", delimiter=',', usecols=[4], dtype=str))
+    
+    for name in range(len(test_names)):
+        if test_names[name] == "Iris-setosa":
+            test_names[name] = [1, 0, 0]
+        elif test_names[name] == "Iris-versicolor":
+            test_names[name] = [0, 1, 0]
+        elif test_names[name] == "Iris-virginica":
+            test_names[name] = [0, 0, 1]
+    
     '''
         4 Inputs:
             - sepal length
@@ -234,18 +247,11 @@ def exercise_D_Iris():
     l_factor = 0.1
 
     # Train the network...
-    train_network(5000, l_factor, list(training_set), list(output_names), input_vector, output_vector)
-
-    # ...and test the network with the test dataset
-    # Pick random flower samples from dataset
-    sample_nr = 25
-    test_indeces = sample(range(0, len(training_set)-1), sample_nr)
-    test_samples = [training_set[_sample] for _sample in test_indeces]
-    expected_output = [output_names[_sample] for _sample in test_indeces]
-
+    train_network(5000, l_factor, list(training_set), list(training_names), input_vector, output_vector)
     print("\nDone Training!\nTesting...\n")
 
-    results = test_network(test_samples, expected_output, input_vector, output_vector)
+    # ...and test the network with the test dataset
+    results = test_network(list(test_set), list(test_names), input_vector, output_vector)
     flowers = ["Iris-setosa", "Iris-versicolor", "Iris-virginica"]
 
     print("\n...Done!\n")
@@ -258,7 +264,7 @@ def exercise_D_Iris():
             error_counter += 1
 
     # Calculate wrong percentage
-    print("\nError Percentage: {:%}". format(error_counter / sample_nr))
+    print("\nError Percentage: {:%}". format(error_counter / len(test_names)))
     
 
 
