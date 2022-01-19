@@ -1,0 +1,36 @@
+1.a P╝henotype:
+        Is de affiniteit van de ridders naar elkaar.
+        Dit is in deze opdracht het enige wat de ridders van elkaar onderscheidt
+
+1.b Genotype:
+        Lijst van ridders, waarin de positie van de ridder zijn plek
+        van de Ronde Tafel is.
+
+1.c Fitnessfunctie:
+        De som van de affiniteiten tussen de ridders met als doel om de hoogste affiniteit mogelijk tussen alle ridders te behalen.
+
+1.d Crossover operator:
+        We gebruiken OX1 al crossover operator. Omdat het genetisch materiaal unieke namen
+        zijn, mogen deze maar één keer voorkomen. Met puntgewijze operators kunnen deze
+        namen meer dan één keer voorkomen in de nakomelingen.
+
+            (Zie https://stackoverflow.com/a/26521576)
+
+                      |-------|
+        P1 = [1, 2, 4, 6, 8, 7, 3, 5]
+        P2 = [4, 1, 2, 3, 6, 7, 8, 5]
+
+        C1 = [4, 1, 2, 6, 8, 7, 8, 4]
+
+
+        P1 = [1, 2, 4, 6, 8, 7, 3, 5]
+        P2 = [4, 1, 2, 3, 6, 7, 8, 5]
+                            |-------|
+
+        C2 = [1, 2, 4, 6, 3, 7, 8, 5]
+
+
+1.e Mutatie:
+        Er worden twee punten willekeurig geselecteerd. Deze worden dan omgewisseld.
+               v        v
+C2 = [1, 2, 4, 6, 3, 7, 8, 5] => [1, 2, 4, 8, 3, 7, 6, 5]
