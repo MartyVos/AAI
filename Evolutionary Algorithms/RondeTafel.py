@@ -7,8 +7,7 @@ from unittest import result
 
 '''
     TODO:
-    - Create populations
-    - Generate new generations
+    - Different Selection?
 '''
 
 
@@ -60,10 +59,10 @@ def OX1(parent1: List[Any], parent2: List[Any]) -> List[Any]:
 
 def get_offsprings(parent1: List[Any], parent2: List[Any]) -> List[List[Any]]:
     offsprings = []
-    offsprings.append(OX1(parent1, parent2))
-    offsprings.append(OX1(parent2, parent1))
-    offsprings.append(OX1(parent1, parent2))
-    offsprings.append(OX1(parent2, parent1))
+    offsprings.append(mutate(OX1(parent1, parent2)))
+    offsprings.append(mutate(OX1(parent2, parent1)))
+    offsprings.append(mutate(OX1(parent1, parent2)))
+    offsprings.append(mutate(OX1(parent2, parent1)))
     return offsprings
 
 
@@ -86,6 +85,13 @@ def fitness(table: List[str], dictionary: Dict[str, List[float]]) -> float:
         neighbour_index = knight_index+1
         if neighbour_index >= len(table):
             neighbour_index = 0
+        
+        neighbour = table[neighbour_index]
+        result += float(affinity_list[indexes.index(neighbour)])
+
+        neighbour_index = knight_index-1
+        if neighbour_index < 0:
+            neighbour_index = len(table)-1
         
         neighbour = table[neighbour_index]
         result += float(affinity_list[indexes.index(neighbour)])
@@ -153,6 +159,7 @@ def main():
     n_generations = 100
     counter = 0
     current_gen = None
+    results = None
     while(counter <= n_generations):
         if not current_gen:
             current_gen = generate_population(affinity, amount=20)
@@ -160,16 +167,16 @@ def main():
             current_gen = generate_population(affinity, current_gen)
 
         print("Generation", counter)
-        results = [fitness(current_gen[i], affinity) for i in range(len(current_gen))]
-        results.sort(reverse=True)
+        results = [[i, fitness(current_gen[i], affinity)] for i in range(len(current_gen))]
+        results.sort(reverse=True, key=lambda x: x[1])
         print("Top 3:")
-        print("\t", results[0])
-        print("\t", results[1])
-        print("\t", results[2])
+        print("\t", results[0][1])
+        print("\t", results[1][1])
+        print("\t", results[2][1])
         print()
         counter += 1
 
-
+    print("Best solution:", current_gen[results[0][0]])
 
 
 if __name__ == "__main__":
